@@ -1,0 +1,127 @@
+0. Program -> MainClass ClassDeclOpt
+
+1. MainClass -> class id { 
+			       public void main(){
+				 	    StmtOpt
+				   }
+			    }
+
+// ClassDecl* can be described in CFG by the following rules
+2. ClassDeclOpt -> ClassDecl ClassDeclOpt
+	            -> 
+
+3. ClassDecl -> class id ClassDeclRest
+4. ClassDeclRest -> { VarDeclOpt MethodDeclOpt }
+                 -> extends id { VarDeclOpt MethodDeclOpt }
+       
+/*
+ * By "5. VarDeclOpt -> VarDecl, 6. VarDecl -> Type id;, 10. Type -> id", first(VarDeclOpt) <= id.
+ * But by "VarDeclOpt -> , 8. MethodDecl -> public Type id(ParamList){ VarDeclOpt StmtOpt }, 
+ * 13. StmtOpt -> Stmt StmtOpt, 14. Stmt -> AssgnStmt, AssgnStmt -> id = Expr;", follow(VarDeclOpt) <= id.
+ * This is a conflict???
+ */        
+5. ValDeclOpt -> VarDecl VarDeclOpt
+	  	      -> 
+
+6. VarDecl -> Type id;
+
+7. MethodDeclOpt -> MethodDecl MethodDeclOpt
+	             ->
+
+8. MethodDecl -> public Type id(ParamList){ 
+			  	VarDeclOpt StmtOpt 
+			  }
+9. ParamList -> Type id ParamListRest
+             -> 
+10. ParamListRest -> ,Type id ParamListRest
+	              ->
+
+11. Type -> void
+	     -> boolean
+	     -> int IntTypeRest
+	     -> id	# user-defined class     
+12. IntTypeRest -> []
+                ->
+                
+13. StmtOpt -> Stmt StmtOpt
+		    ->
+
+14. Stmt -> {StmtOpt}
+         -> AssgnStmt
+	     -> IfStmt
+	     -> WhileStmt
+	     -> PrintStmt
+ 	     -> ReturnStmt
+
+15. AssgnStmt -> id AssgnStmtRest
+16. AssgnStmtRest -> = Expr;
+				  -> [Expr] = Expr;	    	  
+
+/*
+ * By "IfStmt -> if(Expr) Stmt ElsePart" and "Stmt -> IfStmt", follow(ElsePart) <= follow(Ifstmt) <= follow(stmt)
+ * But by "ElsePart -> else Stmt", follow(stmt) <= follow(ElsePart). this is a conflict?
+ * so fllow(ElsePart) <= else, but first(ElsePart) <= else, this is a conflict???
+ */
+17. IfStmt -> if(Expr) Stmt ElsePart
+18. ElsePart -> else Stmt
+			 ->
+
+19. WhileStmt -> while(Expr) Stmt
+
+20. PrintStmt -> print(Expr);
+
+21. ReturnStmt -> return Expr;
+
+/*
+Make changes to grammar 21 for expression below, and get grammars 21-28.
+Based on expression CFG for C language in P117, <<A Retargetable C Compiler: Design and Implementation>>>.
+
+22. Expr -> !Expr
+	     -> Expr BinOp Expr
+	     -> Expr[Expr]
+	     -> Expr.length	# get array's length
+	     -> Expr.id(ExpList) # function call
+	     -> new int[Expr] # create an integer array
+	     -> new id() # create an object
+         -> (Expr)
+	     -> id
+	     -> INTEGER_LITERAL
+         -> this # this expression
+	     -> true
+	     -> false
+*/
+
+22. Expr -> UnaryExpr ExprRest
+23. ExprRest -> BinOp UnaryExpr ExprRest
+             ->
+24. UnaryExpr -> !UnaryExpr
+              -> PostfixExpr
+25. PostfixExpr -> BasicExpr PostfixExprRest
+26. PostfixExprRest -> PostfixOp PostfixExprRest
+                    ->
+27. PostfixOp -> .PostfixOpRest
+              -> [Expr]
+28. PostfixOpRest -> length
+                  -> id(ExpList)
+29. BasicExpr -> NewExpr
+              -> id
+	          -> INTEGER_LITERAL
+              -> this # this expression
+	          -> true
+	          -> false
+	          -> (Expr)
+30. NewExpr -> new NewExprRest	          
+31. NewExprRest -> id()
+                -> int[Expr]
+                                    
+32. ExprList -> Expr ExprListRest
+	    	 -> 
+		
+33. ExprListRest -> ,Expr ExprListRest
+	     		 -> 
+
+34. BinOp -> &&
+	      -> <
+	      -> +
+	      -> -
+          -> *

@@ -1,0 +1,2 @@
+miniJava is an naive implementation of an interpreter of a subset of Java language called miniJava.
+Currently only lexer, parser, type checker have been implemented.
